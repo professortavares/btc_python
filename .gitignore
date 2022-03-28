@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# não quero que suba arquivos relacionados ao ambiente
+/btc_python
