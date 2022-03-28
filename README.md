@@ -34,3 +34,14 @@ $ pip install -r requirements.txt
 ```
 $ uvicorn main:app --reload
 ```
+
+
+Referências:
+- What is REST https://restfulapi.net/
+
+- Richardson Maturity Model
+https://martinfowler.com/articles/richardsonMaturityModel.html
+
+- Markdown https://www.markdownguide.org/cheat-sheet/
+
+- Criando ambientes virtual em python https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments
