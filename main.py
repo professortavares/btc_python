@@ -1,56 +1,48 @@
 from fastapi import FastAPI, status, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from typing import List 
 
-from database import Base, engine, ToDo
+from fastapi import Depends
+from database import Base, engine, SessionLocal
 
-# A criação do objeto app, que é um objeto da
-# classe FastAPI
-app = FastAPI()
+import models
+import schemas
+import crud_todo
+
+
+# seguir o passo a passo que está em:
+# https://www.gormanalysis.com/blog/building-a-simple-crud-application-with-fastapi/
 
 # Create the database
 Base.metadata.create_all(engine)
 
+def get_session():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-class Tarefa(BaseModel):
-    task:str
+
+app = FastAPI()
 
 @app.get("/")
 def root(nome:str = "world!!!"):
     return {"message": f"Hello {nome}"}
 
-
 @app.post("/todo", status_code=status.HTTP_201_CREATED)
-def criar_tarefa(tarefa:Tarefa):
-    # create a new database session
-    session = Session(bind=engine, expire_on_commit=False)
-
+def create_todo(todo: schemas.ToDoCreate, session:Session = Depends(get_session)):
     # create an instance of the ToDo database model
-    tododb = ToDo(tarefa = tarefa.task)
-
-    # add it to the session and commit it
-    session.add(tododb)
-    session.commit()
-
-    # grab the id given to the object from the database
-    id = tododb.id
-
-    # close the session
-    session.close()
+    tododb = crud_todo.create_todo(session, todo)
 
     # return the id
-    return f"created todo item with id {id}"
+    return tododb.id
 
 @app.get("/todo/{id}")
-def ler_tarefa_por_id(id:int):
-    # create a new database session
-    session = Session(bind=engine, expire_on_commit=False)
+def read_todo(id: int, session:Session = Depends(get_session)):
 
-    # get the todo item with the given id
-    todo = session.query(ToDo).get(id)
-
-    # close the session
-    session.close()
+    todo = crud_todo.get_todo_by_id(session, id)
 
     # check if todo item with given id exists. If not, raise exception and return 404 not found response
     if not todo:
@@ -59,53 +51,27 @@ def ler_tarefa_por_id(id:int):
     return todo
 
 @app.put("/todo/{id}")
-def atualizar_tarefa_por_id(id:int, task:str):
-    # create a new database session
-    session = Session(bind=engine, expire_on_commit=False)
+def update_todo(id: int, todo: schemas.ToDoCreate, session:Session = Depends(get_session)) :
 
-    # get the todo item with the given id
-    todo = session.query(ToDo).get(id)
-
-    # update todo item with the given task (if an item with the given id was found)
-    if todo:
-        todo.tarefa = task
-        session.commit()
-
-    # close the session
-    session.close()
-
+    todo_atualizado = crud_todo.update_todo(session, id, todo.task)
     # check if todo item with given id exists. If not, raise exception and return 404 not found response
+    if not todo_atualizado:
+        raise HTTPException(status_code=404, detail=f"todo item with id {id} not found")
+    return todo_atualizado.id
+
+@app.delete("/todo/{id}")
+def delete_todo(id: int, session:Session = Depends(get_session)):
+    # get the todo item with the given id
+    todo = crud_todo.delete_todo(session, id)
+
+    # if todo item with given id exists, delete it from the database. Otherwise raise 404 error
     if not todo:
         raise HTTPException(status_code=404, detail=f"todo item with id {id} not found")
 
-    return todo
+    return None
 
-@app.delete("/todo/{id}")
-def excluir_tarefa_por_id(id:int):
-    # create a new database session
-    session = Session(bind=engine, expire_on_commit=False)
-
-    # get the todo item with the given id
-    todo = session.query(ToDo).get(id)
-
-    # if todo item with given id exists, delete it from the database. Otherwise raise 404 error
-    if todo:
-        session.delete(todo)
-        session.commit()
-        session.close()
-    else:
-        raise HTTPException(status_code=404, detail=f"todo item with id {id} not found")
-
-
-@app.get("/todo")
-def ler_todas_tarefas():
-    # create a new database session
-    session = Session(bind=engine, expire_on_commit=False)
-
-    # get all todo items
-    todo_list = session.query(ToDo).all()
-
-    # close the session
-    session.close()
+@app.get("/todo", response_model=List[schemas.ToDo])
+def read_todo_list(session:Session = Depends(get_session)):
+    todo_list = crud_todo.read_todo_list(session)
 
     return todo_list

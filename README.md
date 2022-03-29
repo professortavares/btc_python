@@ -23,6 +23,12 @@ $ python -m venv btc_python
 $ . btc_python/bin/activate
 ```
 
+Caso queira desativar o ambiente, utilize o comando:
+
+```
+$ deactivate
+```
+
 3. Instalar as bibliotecas necessárias para o ambiente funcionar
 
 ```
@@ -35,6 +41,16 @@ $ pip install -r requirements.txt
 $ uvicorn main:app --reload
 ```
 
+5. Para executar o teste de unidade (instale as dependências se for o caso):
+
+```
+$ pytest
+```
+6. Para executar o teste de unidade (com relatório de cobertura):
+
+```
+$ pytest --cov --cov-report html
+```
 
 Referências:
 - What is REST https://restfulapi.net/
