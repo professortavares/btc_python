@@ -1,3 +1,5 @@
 fastapi==0.75.0
 uvicorn==0.17.5
 SQLAlchemy==1.4.32
+requests==2.27.1
+pytest-cov==3.0.0
