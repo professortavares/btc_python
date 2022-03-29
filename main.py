@@ -5,5 +5,5 @@ from fastapi import FastAPI
 app = FastAPI()
 
 @app.get("/")
-def root():
-    return {"message": "Hello Leonardo"}
+def root(nome:str = "world!!!"):
+    return {"message": f"Hello {nome}"}
