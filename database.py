@@ -7,6 +7,4 @@ engine = create_engine("sqlite:///todo.db")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create a DeclarativeMeta instance
 Base = declarative_base()
-

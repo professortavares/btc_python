@@ -11,9 +11,6 @@ import schemas
 import crud_todo
 
 
-# seguir o passo a passo que está em:
-# https://www.gormanalysis.com/blog/building-a-simple-crud-application-with-fastapi/
-
 # Create the database
 Base.metadata.create_all(engine)
 
