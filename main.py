@@ -1,39 +1,35 @@
 from fastapi import FastAPI, status, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from typing import List 
 
-from database import Base, engine, ToDo
+from database import Base, engine
 
-# A criação do objeto app, que é um objeto da
-# classe FastAPI
-app = FastAPI()
+import models
+import schemas
+
 
 # Create the database
 Base.metadata.create_all(engine)
 
-
-class Tarefa(BaseModel):
-    task:str
+app = FastAPI()
 
 @app.get("/")
 def root(nome:str = "world!!!"):
     return {"message": f"Hello {nome}"}
 
-
 @app.post("/todo", status_code=status.HTTP_201_CREATED)
-def criar_tarefa(tarefa:Tarefa):
+def create_todo(todo: schemas.ToDoCreate):
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
     # create an instance of the ToDo database model
-    tododb = ToDo(tarefa = tarefa.task)
+    tododb = models.ToDo(task = todo.task)
 
     # add it to the session and commit it
     session.add(tododb)
     session.commit()
-
-    # grab the id given to the object from the database
-    id = tododb.id
+    session.refresh(tododb)
 
     # close the session
     session.close()
@@ -42,12 +38,12 @@ def criar_tarefa(tarefa:Tarefa):
     return f"created todo item with id {id}"
 
 @app.get("/todo/{id}")
-def ler_tarefa_por_id(id:int):
+def read_todo(id: int):
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
     # get the todo item with the given id
-    todo = session.query(ToDo).get(id)
+    todo = session.query(models.ToDo).get(id)
 
     # close the session
     session.close()
@@ -59,16 +55,16 @@ def ler_tarefa_por_id(id:int):
     return todo
 
 @app.put("/todo/{id}")
-def atualizar_tarefa_por_id(id:int, task:str):
-    # create a new database session
+def update_todo(id: int, task: str):
+# create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
     # get the todo item with the given id
-    todo = session.query(ToDo).get(id)
+    todo = session.query(models.ToDo).get(id)
 
     # update todo item with the given task (if an item with the given id was found)
     if todo:
-        todo.tarefa = task
+        todo.task = task
         session.commit()
 
     # close the session
@@ -81,12 +77,12 @@ def atualizar_tarefa_por_id(id:int, task:str):
     return todo
 
 @app.delete("/todo/{id}")
-def excluir_tarefa_por_id(id:int):
+def delete_todo(id: int):
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
     # get the todo item with the given id
-    todo = session.query(ToDo).get(id)
+    todo = session.query(models.ToDo).get(id)
 
     # if todo item with given id exists, delete it from the database. Otherwise raise 404 error
     if todo:
@@ -97,13 +93,13 @@ def excluir_tarefa_por_id(id:int):
         raise HTTPException(status_code=404, detail=f"todo item with id {id} not found")
 
 
-@app.get("/todo")
-def ler_todas_tarefas():
+@app.get("/todo", response_model=List[schemas.ToDo])
+def read_todo_list():
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
     # get all todo items
-    todo_list = session.query(ToDo).all()
+    todo_list = session.query(models.ToDo).all()
 
     # close the session
     session.close()
