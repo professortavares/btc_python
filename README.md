@@ -23,6 +23,12 @@ $ python -m venv btc_python
 $ . btc_python/bin/activate
 ```
 
+Caso queira desativar o ambiente, utilize o comando:
+
+```
+$ deactivate
+```
+
 3. Instalar as bibliotecas necessárias para o ambiente funcionar
 
 ```
@@ -35,6 +41,16 @@ $ pip install -r requirements.txt
 $ uvicorn main:app --reload
 ```
 
+5. Para executar o teste de unidade (instale as dependências se for o caso):
+
+```
+$ pytest
+```
+6. Para executar o teste de unidade (com relatório de cobertura):
+
+```
+$ pytest --cov --cov-report html
+```
 
 Referências:
 - What is REST https://restfulapi.net/
@@ -45,3 +61,13 @@ https://martinfowler.com/articles/richardsonMaturityModel.html
 - Markdown https://www.markdownguide.org/cheat-sheet/
 
 - Criando ambientes virtual em python https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments
+
+
+
+# Desafio do dia:
+
+Modifique o API TODO-LIST para que:
+1. Crie um teste de unidade de modo que uma tarefa não possa retroceder no status, ou seja, apenas são permitidas as seguintes mudanças (todo-> doing, doing->done)
+1. Crie um teste de unidade, de modo que apenas seja possível excluir uma tarefa caso ela esteja no status ‘done’
+1. Cada tarefa possua o status de conclusão (todo, doing e done)
+1. Crie um atributo para indicar o momento em que uma tarefa mudou de status (todo-> doing, doing->done)
